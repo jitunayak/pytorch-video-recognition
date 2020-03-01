@@ -3,6 +3,94 @@ import math
 import torch.nn as nn
 from torch.nn.modules.utils import _triple
 
+from torchvision import models
+import torch
+from torch import nn
+
+
+class Model_2d(nn.Module):
+    """2D resnet taking input as NxCxWxH"""
+    def __init__(self, n_classes):
+        super(Model_2d, self).__init__()
+        if(model == 'resnet18'):
+            self.model = models.resnet18(pretrained = True)
+        if(model == 'resnet34'):
+            self.model = models.resnet34(pretrained = True)
+        if(model == 'resnet50'):
+            self.model = models.resnet50(pretrained = True)
+        if(model == 'resnet101'):
+            self.model = models.resnet101(pretrained = True)
+        if(model == 'resnet152'):
+            self.model = models.resnet152(pretrained = True)
+        model = nn.Sequential(*list(model.children())[:-1])
+        self.model = model
+        self.relu = nn.ReLU()
+        self.sig = nn.Sigmoid()
+        self.fc1 = nn.Linear(2048, n_classes)  # resnet18 512 out_features
+        self.dp = nn.Dropout(0.2)
+
+    def forward(self, x):
+        x = self.model(x)
+        x = x.view(-1, 2048)  # resnet18 512 out_features
+        x = self.dp(self.fc1(x))
+        return x
+
+
+class Model_attention(nn.Module):
+    """2D resnet with attention taking input as NxDxCxWxH """
+    def __init__(self,model, n_classes):
+        super(Model_attention, self).__init__()
+        if(model == 'resnet18'):
+            self.model = models.resnet18(pretrained = True)
+        if(model == 'resnet34'):
+            self.model = models.resnet34(pretrained = True)
+        if(model == 'resnet50'):
+            self.model = models.resnet50(pretrained = True)
+        if(model == 'resnet101'):
+            self.model = models.resnet101(pretrained = True)
+        if(model == 'resnet152'):
+            self.model = models.resnet152(pretrained = True)
+        model = models.resnet50(pretrained=True)
+        model = nn.Sequential(*list(model.children())[:-1])
+        self.model = model
+        self.relu = nn.ReLU()
+        self.sig = nn.Sigmoid()
+        self.att = nn.Linear(2048, 1)
+        self.fc1 = nn.Linear(2048, n_classes)
+        self.dp = nn.Dropout(0.2)
+
+    def forward(self, x):
+        batch_size = x.shape[0]
+        x = x.view(-1, 3, x.shape[3], x.shape[4])
+        x = self.model(x)
+        x = x.view(-1, 2048)
+        att = self.sig(self.att(x))
+        x = x.view(batch_size, -1, 2048)
+        att = att.view(batch_size, -1, 1)
+        x = torch.sum(x * att, dim=1) / torch.sum(att, dim=1)
+        x = self.dp(self.fc1(x))
+        return x
+
+
+class Model_3d(nn.Module):
+    """3D resnet taking input as NxDxCxWxH """
+
+    def __init__(self, n_classes):
+        super(Model_3d, self).__init__()
+        model = models.video.mc3_18(pretrained=True)
+        model = nn.Sequential(*list(model.children())[:-1])
+        self.model = model
+        self.relu = nn.ReLU()
+        self.sig = nn.Sigmoid()
+        self.fc1 = nn.Linear(512, 101)
+        self.dp = nn.Dropout(0.2)
+
+    def forward(self, x):
+#        x = x.permute(0, 2, 1, 3, 4)
+        x = self.model(x)
+        x = x.view(-1, 512)
+        x = self.dp(self.fc1(x))
+        return x
 
 class SpatioTemporalConv(nn.Module):
     r"""Applies a factored 3D convolution over an input signal composed of several input
