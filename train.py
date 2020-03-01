@@ -69,8 +69,10 @@ def train_model(dataset=dataset, save_dir=save_dir, num_classes=num_classes, lr=
         model = R3D_model.R3DClassifier(num_classes=num_classes, layer_sizes=(2, 2, 2, 2))
         train_params = model.parameters()
     else:
-        print('We only implemented C3D and R2Plus1D models.')
-        raise NotImplementedError
+        model = R3D_model.Model_3d()
+        train_params = model.parameters()
+#        print('We only implemented C3D and R2Plus1D models.')
+#        raise NotImplementedError
     criterion = nn.CrossEntropyLoss()  # standard crossentropy loss for classification
     optimizer = optim.SGD(train_params, lr=lr, momentum=0.9, weight_decay=5e-4)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10,
