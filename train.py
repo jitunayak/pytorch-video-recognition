@@ -46,7 +46,7 @@ else:
     run_id = int(runs[-1].split('_')[-1]) + 1 if runs else 0
 
 save_dir = os.path.join(save_dir_root, 'run', 'run_' + str(run_id))
-modelName = 'C3D' # Options: C3D or R2Plus1D or R3D
+modelName = 'mc3' # Options: C3D or R2Plus1D or R3D
 saveName = modelName + '-' + dataset
 
 def train_model(dataset=dataset, save_dir=save_dir, num_classes=num_classes, lr=lr,
@@ -69,7 +69,7 @@ def train_model(dataset=dataset, save_dir=save_dir, num_classes=num_classes, lr=
         model = R3D_model.R3DClassifier(num_classes=num_classes, layer_sizes=(2, 2, 2, 2))
         train_params = model.parameters()
     else:
-        model = R3D_model.Model_3d()
+        model = R3D_model.Model_3d(101)
         train_params = model.parameters()
 #        print('We only implemented C3D and R2Plus1D models.')
 #        raise NotImplementedError
